@@ -685,3 +685,8 @@ void flushToByte(BitIOInfo* pIO);
 //    pIO->uiAccumulator = LOAD16(pIO->pbCurrent) & ((U32)(-1) >> pIO->cBitsUsed);
 
 void OutputPerfTimerReport(CWMImageStrCodec *pState);
+
+
+// For C99 Compatibility - 20141219
+
+U32 _byteswap_ulong(U32 bits);
