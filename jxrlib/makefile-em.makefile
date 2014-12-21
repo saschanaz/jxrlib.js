@@ -55,14 +55,14 @@ LIBRARIES=libjpegxr.bc libjxrglue.bc
 # Encoder app
 ENCAPP=JxrEncApp
 $(ENCAPP): $(LIBRARIES)
-	$(CC) $(DIR_EXEC)/$(ENCAPP).c -o $(ENCAPP).out.js $(CFLAGS) -I$(DIR_GLUE) -I$(DIR_TEST) $(LIBRARIES)
+	$(CC) $(DIR_EXEC)/$(ENCAPP).c -o $(ENCAPP).out.html $(CFLAGS) -I $(DIR_GLUE) -I $(DIR_TEST) $(LIBRARIES)
 
 # Decoder app
 DECAPP=JxrDecApp
 $(DECAPP): $(LIBRARIES)
-	$(CC) $(DIR_EXEC)/$(DECAPP).c -o $(DECAPP).out.js $(CFLAGS) -I$(DIR_GLUE) -I$(DIR_TEST) $(LIBRARIES)
+	$(CC) $(DIR_EXEC)/$(DECAPP).c -o $(DECAPP).out.html $(CFLAGS) -I $(DIR_GLUE) -I $(DIR_TEST) $(LIBRARIES) -s EXPORTED_FUNCTIONS=['_WmpDecAppUsage']
 
 all: $(ENCAPP) $(DECAPP)
 
 clean:
-	rm -rf *App *.o libj*.a libj*.so libj*.bc
+	rm -rf *App *.o libj*.a libj*.so libj*.bc *.out.*

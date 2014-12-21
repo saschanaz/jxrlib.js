@@ -1,3 +1,8 @@
+# Test image files
+*.jxr
+*.bmp
+*.tiff
+
 # Compiled Object files
 *.slo
 *.lo
