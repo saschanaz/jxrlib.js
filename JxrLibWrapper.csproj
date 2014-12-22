@@ -23,6 +23,7 @@
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="jswrapper\es6-promise.d.ts" />
     <TypeScriptCompile Include="jswrapper\jxrlibwrapper.ts" />
     <TypeScriptCompile Include="jswrapper\module.d.ts" />
   </ItemGroup>

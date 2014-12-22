@@ -5,16 +5,16 @@
 //
 // Copyright � Microsoft Corp.
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
-// 
+//
 // � Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the following disclaimer.
 // � Redistributions in binary form must reproduce the above copyright notice,
 //   this list of conditions and the following disclaimer in the documentation
 //   and/or other materials provided with the distribution.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -66,7 +66,7 @@ typedef struct tagWMPDECAPPARGS
     // post processing
     U8 cPostProcStrength;
 
-    U8 uAlphaMode; // 0:no alpha 1: alpha only else: something + alpha 
+    U8 uAlphaMode; // 0:no alpha 1: alpha only else: something + alpha
 
     SUBBAND sbSubband;  // which subbands to keep (for transcoding)
 
@@ -82,7 +82,7 @@ void WmpDecAppUsage(const char *szExe)
 {
     printf(CRLF);
     printf("JPEG XR Decoder Utility" CRLF);
-    printf("Copyright 2013 Microsoft Corporation - All Rights Reserved" CRLF); 
+    printf("Copyright 2013 Microsoft Corporation - All Rights Reserved" CRLF);
     printf(CRLF);
     printf("%s [options]..." CRLF, szExe);
     printf(CRLF);
@@ -167,11 +167,11 @@ void WmpDecAppUsage(const char *szExe)
     printf("                               7: Rotate 90 degrees CW & flip vert & horiz" CRLF);
     printf(CRLF);
 
-    printf("  -s skip subbands             Used for compressed domain transcoding" CRLF);    
-    printf("                               0: All subbands included (default)" CRLF);    
-    printf("                               1: Skip flexbits" CRLF);    
-    printf("                               2: Skip highpass" CRLF);    
-    printf("                               3: Skip highpass & lowpass (DC only)" CRLF);    
+    printf("  -s skip subbands             Used for compressed domain transcoding" CRLF);
+    printf("                               0: All subbands included (default)" CRLF);
+    printf("                               1: Skip flexbits" CRLF);
+    printf("                               2: Skip highpass" CRLF);
+    printf("                               3: Skip highpass & lowpass (DC only)" CRLF);
     printf(CRLF);
 
     printf("  -a alpha decode              0: Decode without alpha channel" CRLF);
@@ -211,8 +211,8 @@ void WmpDecAppShowArgs(WMPDECAPPARGS *args)
 
     if (args->szColorProfileFile)
         printf("Color profile:    %s" CRLF, args->szColorProfileFile);
-    
-    printf("Color format:   %08X-%04X-%04X-%02X%02X%02X%02X%02X%02X%02X%02X" CRLF, 
+
+    printf("Color format:   %08X-%04X-%04X-%02X%02X%02X%02X%02X%02X%02X%02X" CRLF,
         guidPF.Data1, guidPF.Data2, guidPF.Data3, guidPF.Data4[0], guidPF.Data4[1], guidPF.Data4[2],
         guidPF.Data4[3], guidPF.Data4[4], guidPF.Data4[5], guidPF.Data4[6], guidPF.Data4[7]);
     printf("Post processing strength: %d" CRLF, args->cPostProcStrength);
@@ -279,7 +279,7 @@ ERR WmpDecAppParseArgs(int argc, char *argv[], WMPDECAPPARGS *args)
         &GUID_PKPixelFormat32bppCMYK,
         &GUID_PKPixelFormat64bppCMYK,
 
-        &GUID_PKPixelFormat12bppYUV420, 
+        &GUID_PKPixelFormat12bppYUV420,
         &GUID_PKPixelFormat16bppYUV422,
         &GUID_PKPixelFormat24bppYUV444,
 
@@ -324,7 +324,7 @@ ERR WmpDecAppParseArgs(int argc, char *argv[], WMPDECAPPARGS *args)
             args->bIgnoreOverlap = TRUE;
             break;
 
-        case 'f': 
+        case 'f':
             args->bfBitstreamFormat = FREQUENCY;
             break;
 
@@ -371,15 +371,15 @@ ERR WmpDecAppParseArgs(int argc, char *argv[], WMPDECAPPARGS *args)
                     break;
                 }
 
-                /*                case 'R': 
+                /*                case 'R':
                 args->bFlagRGB_BGR = (Bool)atoi(argv[i]);
                 break;
                 */
-            case 'a': 
+            case 'a':
                 args->uAlphaMode = (U8)atoi(argv[i]);
                 break;
 
-            case 's': 
+            case 's':
                 args->sbSubband = (SUBBAND)atoi(argv[i]);
                 break;
 
@@ -459,7 +459,7 @@ EXTERN_C ERR PKImageDecode_GetColorContext_WMP(PKImageDecode *pID, U8 *pbColorCo
 //================================================================
 // main function
 //================================================================
-int 
+int
 #ifndef __ANSI__
     __cdecl
 #endif // __ANSI__
@@ -523,7 +523,7 @@ mainFn(int argc, char *argv[])
             pDecoder->WMP.wmiI.uImageByteCount = byteCount;
         }
 
-        // Circumvent the bug in JXELIB's JPEG-XR encoder that used to write wrong alpha plane byte count. 
+        // Circumvent the bug in JXELIB's JPEG-XR encoder that used to write wrong alpha plane byte count.
         // Adjust the alpha plane byte count if the value is wrong.
         if (pDecoder->WMP.wmiDEMisc.uAlphaOffset + pDecoder->WMP.wmiI_Alpha.uImageByteCount > (U32)fileSize)
             pDecoder->WMP.wmiI_Alpha.uImageByteCount = fileSize - pDecoder->WMP.wmiDEMisc.uAlphaOffset;
@@ -578,7 +578,7 @@ mainFn(int argc, char *argv[])
     //    pDecoder->WMP.wmiI.bRGB = args.bFlagRGB_BGR;
 
     // == color transcoding,
-    if (IsEqualGUID(&args.guidPixFormat, &GUID_PKPixelFormat8bppGray) || 
+    if (IsEqualGUID(&args.guidPixFormat, &GUID_PKPixelFormat8bppGray) ||
         IsEqualGUID(&args.guidPixFormat, &GUID_PKPixelFormat16bppGray))
     { // ** => Y transcoding
         pDecoder->guidPixFormat = args.guidPixFormat;
