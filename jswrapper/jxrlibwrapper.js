@@ -39,8 +39,11 @@ var JxrLib;
             FS.writeFile("input.jxr", new Uint8Array(buffer), { encoding: "binary" });
             return EmscriptenUtility.FileSystem.synchronize(true);
         }).then(function () {
-            var arguments = EmscriptenUtility.allocateStringArray(["./this.program", "-i", "input.jxr", "-o", "output.bmp"]);
-            Module.ccall("mainFn", "number", ["number", "number"], [arguments.content.length, arguments.pointer]);
+            var arguments = EmscriptenUtility.allocateStringArray(["./this.program", "-v", "-i", "input.jxr", "-o", "output.bmp"]);
+            var resultCode = Module.ccall("mainFn", "number", ["number", "number"], [arguments.content.length, arguments.pointer]);
+            console.log(resultCode);
+            if (resultCode !== 0)
+                throw new Error("Decoding failed: error code " + resultCode);
             EmscriptenUtility.deleteStringArray(arguments);
             return EmscriptenUtility.FileSystem.synchronize(false);
         }).then(function () {

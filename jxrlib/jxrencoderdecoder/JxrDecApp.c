@@ -514,6 +514,9 @@ mainFn(int argc, char *argv[])
         FILE *pFile = pDecoder->pStream->state.file.pFile;
         fseek(pFile, 0, SEEK_END);
         fileSize = ftell(pFile);
+        if (args.bVerbose) {
+          printf("File size: %ld\n", fileSize);
+        }
         fseek(pFile, 0, SEEK_SET);
 
         if ((U32)fileSize < pDecoder->WMP.wmiDEMisc.uImageOffset + pDecoder->WMP.wmiDEMisc.uImageByteCount)

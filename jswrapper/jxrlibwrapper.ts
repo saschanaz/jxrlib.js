@@ -46,8 +46,11 @@
                 return EmscriptenUtility.FileSystem.synchronize(true);
             })
             .then(() => {
-                var arguments = EmscriptenUtility.allocateStringArray(["./this.program", "-i", "input.jxr", "-o", "output.bmp"]);
-                Module.ccall("mainFn", "number", ["number", "number"], [arguments.content.length, arguments.pointer]);
+                var arguments = EmscriptenUtility.allocateStringArray(["./this.program", "-v", "-i", "input.jxr", "-o", "output.bmp"]);
+                var resultCode = Module.ccall("mainFn", "number", ["number", "number"], [arguments.content.length, arguments.pointer]);
+                console.log(resultCode);
+                if (resultCode !== 0)
+                    throw new Error("Decoding failed: error code " + resultCode);
                 EmscriptenUtility.deleteStringArray(arguments);
                 return EmscriptenUtility.FileSystem.synchronize(false);
             })

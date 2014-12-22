@@ -1,4 +1,4 @@
-build: all
+build: lib
 
 # Emscripten
 CC=emcc
@@ -59,10 +59,16 @@ $(ENCAPP): $(LIBRARIES)
 
 # Decoder app
 DECAPP=JxrDecApp
+DECLIB=JxrDecLib
+DECCOMPILE=$(CC) $(DIR_EXEC)/$(DECAPP).c $(CFLAGS) -I $(DIR_GLUE) -I $(DIR_TEST) $(LIBRARIES)
 $(DECAPP): $(LIBRARIES)
-	$(CC) $(DIR_EXEC)/$(DECAPP).c -o $(DECAPP).out.js $(CFLAGS) -I $(DIR_GLUE) -I $(DIR_TEST) $(LIBRARIES) -s EXPORTED_FUNCTIONS=['_mainFn']
+	$(DECCOMPILE) -o $(DECAPP).out.js -s EXPORTED_FUNCTIONS=['_main']
+$(DECLIB): $(LIBRARIES)
+	$(DECCOMPILE) -o $(DECLIB).out.js -s EXPORTED_FUNCTIONS=['_mainFn']
 
-all: $(ENCAPP) $(DECAPP)
+app: $(ENCAPP) $(DECAPP)
+
+lib: $(DECLIB)
 
 clean:
 	rm -rf *App *.o libj*.a libj*.so libj*.bc *.out.*

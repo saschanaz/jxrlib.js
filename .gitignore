@@ -3,6 +3,9 @@
 *.bmp
 *.tiff
 
+# Compiled LLVM Bitcode files
+*.bc
+
 # Compiled Object files
 *.slo
 *.lo
