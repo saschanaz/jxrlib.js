@@ -1,7 +1,11 @@
-# Test image files
+# Internal test image files
 *.jxr
 *.bmp
 *.tiff
+*.png
+
+# Lenna
+!Lenna.jxr
 
 # Compiled LLVM Bitcode files
 *.bc

@@ -10,12 +10,40 @@
   <script src="jswrapper/jxrlibwrapper.js"></script>
   
   <!--<script src="jxrdeclib.js"></script>-->
+
+  <script>
+    function decodeSelectedFile(file) {
+      JxrLib.decodeAsBlob(file).then(show);
+    }
+
+    function loadSample() {
+      download("Lenna.jxr").then(JxrLib.decodeAsBlob).then(show);
+    }
+    function download(url) {
+      return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.onload = function () { resolve(xhr.response) };
+        xhr.onerror = function (err) { reject(new Error(err.message)) };
+        xhr.open("GET", url);
+        xhr.responseType = "arraybuffer";
+        xhr.send();
+      });
+    }
+    function show(blob) {
+      window.image.src = window.URL.createObjectURL(blob, { oneTimeOnly: true });
+    }
+  </script>
 </head>
 <body>
   <h1>JxrLib.js Testing Page</h1>
 
   <div id="content">
-    <input type="file" onchange="JxrLib.decodeAsBlob(this.files[0]).then(function (blob) { window.image.src = window.URL.createObjectURL(blob, { oneTimeOnly: true }); });" accept=".jxr,image/vnd.ms-photo" /><br />
+    <p>
+      Load a JPEG XR file: <input type="file" onchange="decodeSelectedFile(this.files[0])" accept=".jxr,image/vnd.ms-photo" /><br />
+    </p>
+    <p>
+      <input name="sampleLoader" type="button" onclick="loadSample()" value="Load Lenna.jxr" /><br />
+    </p>
     <img id="image" />
   </div>
 </body>
