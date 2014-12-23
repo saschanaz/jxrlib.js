@@ -1,7 +1,7 @@
 jxrlib.js
 =========
 
-A trial to bring [jxrlib](http://jxrlib.codeplex.com/) to JavaScript world, by Emscripten.
+A trial to bring [jxrlib](http://jxrlib.codeplex.com/), an open source JPEG XR library, to JavaScript world by Emscripten.
 
 ### Example
 
@@ -19,16 +19,15 @@ Decoding options will be supported very soon.
 
 ```typescript
 declare module JxrLib {
-    var sample: string;
-    function download(url: string): Promise<ArrayBuffer>;
-    function isNativelySupported(): Promise<boolean>;
-    
-    function decode(blob: Blob): Promise<Uint8Array>;
-    function decode(arraybuffer: ArrayBuffer): Promise<Uint8Array>;
-    function decodeAsBlob(blob: Blob): Promise<Blob>;
-    function decodeAsBlob(arraybuffer: ArrayBuffer): Promise<Blob>;
-    function decodeAsElement(blob: Blob): Promise<HTMLImageElement>;
-    function decodeAsElement(arraybuffer: ArrayBuffer): Promise<HTMLImageElement>;
+  function decode(blob: Blob): Promise<Uint8Array>;
+  function decode(arraybuffer: ArrayBuffer): Promise<Uint8Array>;
+  function decodeAsBlob(blob: Blob): Promise<Blob>;
+  function decodeAsBlob(arraybuffer: ArrayBuffer): Promise<Blob>;
+  function decodeAsElement(blob: Blob): Promise<HTMLImageElement>;
+  function decodeAsElement(arraybuffer: ArrayBuffer): Promise<HTMLImageElement>;
+  
+  // Checks whether the browser natively supports JPEG XR
+  function isNativelySupported(): Promise<boolean>;  
 }
 ```
 
