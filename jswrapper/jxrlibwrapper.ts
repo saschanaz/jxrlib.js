@@ -31,9 +31,9 @@
         });
     }
     
-    export function decode(blob: Blob, options: DecodingOptionBag)
-    export function decode(arraybuffer: ArrayBuffer, options: DecodingOptionBag)
-    export function decode(input: any, options: DecodingOptionBag) {
+    export function decode(blob: Blob, options?: DecodingOptionBag): Promise<Uint8Array>
+    export function decode(arraybuffer: ArrayBuffer, options?: DecodingOptionBag): Promise<Uint8Array>
+    export function decode(input: any, options?: DecodingOptionBag) {
         var sequence: Promise<ArrayBuffer>;
         if (input instanceof ArrayBuffer)
             sequence = Promise.resolve(input);
@@ -52,13 +52,35 @@
                 if (resultCode !== 0)
                     throw new Error("Decoding failed: error code " + resultCode);
                 EmscriptenUtility.deleteStringArray(arguments);
+                FS.unlink("input.jxr");
                 return EmscriptenUtility.FileSystem.synchronize(false);
             })
             .then(() => {
-                return FS.readFile("output.bmp", { encoding: "binary" });
+                var result = FS.readFile("output.bmp", { encoding: "binary" });
+                FS.unlink("output.bmp");
+                return result;
             });
     }
 
+    export function decodeAsBlob(blob: Blob, options?: DecodingOptionBag): Promise<Blob>
+    export function decodeAsBlob(arraybuffer: ArrayBuffer, options?: DecodingOptionBag): Promise<Blob>
+    export function decodeAsBlob(input: any, options?: DecodingOptionBag) {
+        return decode(input, options)
+            .then((uint8array) => {
+                return new Blob([new DataView(uint8array.buffer)], { type: "image/bmp" })
+            });
+    }
+
+    export function decodeAsElement(blob: Blob, options?: DecodingOptionBag): Promise<HTMLImageElement>
+    export function decodeAsElement(arraybuffer: ArrayBuffer, options?: DecodingOptionBag): Promise<HTMLImageElement>
+    export function decodeAsElement(input: any, options?: DecodingOptionBag) {
+        return decodeAsBlob(input, options)
+            .then((blob) => {
+                var image = new Image();
+                image.src = URL.createObjectURL(blob, { oneTimeOnly: true });
+                return image;
+            });
+    }
 }
 
 module EmscriptenUtility {

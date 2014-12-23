@@ -12,7 +12,8 @@
   <h1>JxrLib.js Testing Page</h1>
 
   <div id="content">
-    <input type="file" onchange="JxrLib.decode(this.files[0], null)" accept=".jxr,image/vnd.ms-photo" />
+    <input type="file" onchange="JxrLib.decodeAsBlob(this.files[0]).then(function (blob) { window.image.src = window.URL.createObjectURL(blob, { oneTimeOnly: true }); });" accept=".jxr,image/vnd.ms-photo" /><br />
+    <img id="image" />
   </div>
 </body>
 </html>

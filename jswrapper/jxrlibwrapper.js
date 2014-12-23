@@ -45,12 +45,29 @@ var JxrLib;
             if (resultCode !== 0)
                 throw new Error("Decoding failed: error code " + resultCode);
             EmscriptenUtility.deleteStringArray(arguments);
+            FS.unlink("input.jxr");
             return EmscriptenUtility.FileSystem.synchronize(false);
         }).then(function () {
-            return FS.readFile("output.bmp", { encoding: "binary" });
+            var result = FS.readFile("output.bmp", { encoding: "binary" });
+            FS.unlink("output.bmp");
+            return result;
         });
     }
     JxrLib.decode = decode;
+    function decodeAsBlob(input, options) {
+        return decode(input, options).then(function (uint8array) {
+            return new Blob([new DataView(uint8array.buffer)], { type: "image/bmp" });
+        });
+    }
+    JxrLib.decodeAsBlob = decodeAsBlob;
+    function decodeAsElement(input, options) {
+        return decodeAsBlob(input, options).then(function (blob) {
+            var image = new Image();
+            image.src = URL.createObjectURL(blob, { oneTimeOnly: true });
+            return image;
+        });
+    }
+    JxrLib.decodeAsElement = decodeAsElement;
 })(JxrLib || (JxrLib = {}));
 var EmscriptenUtility;
 (function (EmscriptenUtility) {
