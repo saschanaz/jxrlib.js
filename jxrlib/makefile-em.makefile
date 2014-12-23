@@ -5,7 +5,7 @@ CC=emcc
 
 # Compiler flags
 # -D : #define in proprocessor
-CFLAGS=-std=c11 -I common/include -I $(DIR_SYS) -D __ANSI__ -D DISABLE_PERF_MEASUREMENT
+CFLAGS=-std=c11 -I common/include -I $(DIR_SYS) -D __ANSI__ -D DISABLE_PERF_MEASUREMENT -D _EMSCRIPTEN_
 
 # Directories
 DIR_SYS=image/sys

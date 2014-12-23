@@ -177,10 +177,11 @@ typedef struct tagBitIOInfo
 
     I32 iMask;  // mask used simulate pointer wrap around
 
-    U8* pbStart;    // start pointer
 #ifndef ARMOPT_BITIO
+	U8* pbStart;    // start pointer
     U8* pbCurrent;  // current pointer
 #else
+	U32* pbStart;    // start pointer
     U32* pbCurrent;  // current pointer
 #endif
 
@@ -686,7 +687,8 @@ void flushToByte(BitIOInfo* pIO);
 
 void OutputPerfTimerReport(CWMImageStrCodec *pState);
 
-
-// For C99 Compatibility - 20141219
-
+#ifdef _BIG__ENDIAN_
+#define _byteswap_ulong(x)  (x)
+#else // _BIG__ENDIAN_
 U32 _byteswap_ulong(U32 bits);
+#endif // _BIG__ENDIAN_
