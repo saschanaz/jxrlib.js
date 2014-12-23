@@ -1,7 +1,7 @@
 jxrlib.js
 =========
 
-A trial to bring [jxrlib](http://jxrlib.codeplex.com/), an open source JPEG XR library, to JavaScript world by Emscripten.
+A trial to bring [jxrlib](http://jxrlib.codeplex.com/), an open source JPEG XR library, to the JavaScript world.
 
 ### Example
 
