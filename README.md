@@ -33,4 +33,4 @@ declare module JxrLib {
 
 ### Depends on:
 
-ES6 Promise (Natively supported on Firefox, Chrome, and IE Technical Preview as of December 2014)
+* ES6 Promise (Natively supported on Firefox, Chrome, and IE Technical Preview as of December 2014)
