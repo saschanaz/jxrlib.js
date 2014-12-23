@@ -1,7 +1,7 @@
 jxrlib.js
 =========
 
-A trial to bring jxrlib to JavaScript world, by Emscripten.
+A trial to bring [jxrlib](http://jxrlib.codeplex.com/) to JavaScript world, by Emscripten.
 
 ### Example
 
