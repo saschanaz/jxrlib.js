@@ -1,6 +1,4 @@
 declare module JxrLib {
-    var sample: string;
-    function download(url: string): Promise<ArrayBuffer>;
     function isNativelySupported(): Promise<boolean>;
     interface DecodingOptionBag {
     }
