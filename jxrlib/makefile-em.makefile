@@ -54,21 +54,25 @@ LIBRARIES=libjpegxr.bc libjxrglue.bc
 
 # Encoder app
 ENCAPP=JxrEncApp
+ENCCOMPILE=$(CC) $(DIR_EXEC)/$(ENCAPP).c $(CFLAGS) -I $(DIR_GLUE) -I $(DIR_TEST) $(LIBRARIES)
 $(ENCAPP): $(LIBRARIES)
-	$(CC) $(DIR_EXEC)/$(ENCAPP).c -o $(ENCAPP).out.js $(CFLAGS) -I $(DIR_GLUE) -I $(DIR_TEST) $(LIBRARIES)
+	$(ENCCOMPILE) -o $(ENCAPP).out.js -s EXPORTED_FUNCTIONS=['_main']
 
 # Decoder app
 DECAPP=JxrDecApp
-DECLIB=JxrDecLib
 DECCOMPILE=$(CC) $(DIR_EXEC)/$(DECAPP).c $(CFLAGS) -I $(DIR_GLUE) -I $(DIR_TEST) $(LIBRARIES)
 $(DECAPP): $(LIBRARIES)
 	$(DECCOMPILE) -o $(DECAPP).out.js -s EXPORTED_FUNCTIONS=['_main']
-$(DECLIB): $(LIBRARIES)
-	$(DECCOMPILE) -o $(DECLIB).out.js -s EXPORTED_FUNCTIONS=['_mainFn']
+
+# Single integrated Library
+INTLIB=JxrLib
+INTCOMPILE=$(CC) $(DIR_EXEC)/$(DECAPP).c $(DIR_EXEC)/$(ENCAPP).c $(CFLAGS) -I $(DIR_GLUE) -I $(DIR_TEST) $(LIBRARIES) -D _NOMAIN_
+$(INTLIB): $(LIBRARIES)
+	$(INTCOMPILE) -o $(INTLIB).out.js -s EXPORTED_FUNCTIONS=['_jxrlibDecodeMain','_jxrlibEncodeMain']
 
 app: $(ENCAPP) $(DECAPP)
 
-lib: $(DECLIB)
+lib: $(INTLIB)
 
 clean:
 	rm -rf *App *.o libj*.a libj*.so libj*.bc *.out.*

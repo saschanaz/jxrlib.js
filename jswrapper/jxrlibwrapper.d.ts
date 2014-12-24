@@ -8,6 +8,14 @@ declare module JxrLib {
     function decodeAsBlob(arraybuffer: ArrayBuffer, options?: DecodingOptionBag): Promise<Blob>;
     function decodeAsElement(blob: Blob, options?: DecodingOptionBag): Promise<HTMLImageElement>;
     function decodeAsElement(arraybuffer: ArrayBuffer, options?: DecodingOptionBag): Promise<HTMLImageElement>;
+    interface EncodingOptionBag {
+    }
+    function encode(blob: Blob, options?: EncodingOptionBag): Promise<Uint8Array>;
+    function encode(arraybuffer: ArrayBuffer, options?: EncodingOptionBag): Promise<Uint8Array>;
+    function encodeAsBlob(blob: Blob, options?: EncodingOptionBag): Promise<Blob>;
+    function encodeAsBlob(arraybuffer: ArrayBuffer, options?: EncodingOptionBag): Promise<Blob>;
+    function encodeAsElement(blob: Blob, options?: EncodingOptionBag): Promise<HTMLImageElement>;
+    function encodeAsElement(arraybuffer: ArrayBuffer, options?: EncodingOptionBag): Promise<HTMLImageElement>;
 }
 declare module EmscriptenUtility {
     interface AllocatedArray {
