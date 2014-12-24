@@ -464,7 +464,7 @@ int
     __cdecl
 #endif // __ANSI__
 
-mainFn(int argc, char *argv[])
+jxrlibDecodeMain(int argc, char *argv[])
 {
     ERR err = WMP_errSuccess;
 
@@ -746,6 +746,7 @@ Cleanup:
     return (int)err;
 }
 
+#ifndef _NOMAIN_
 int
 #ifndef __ANSI__
 	__cdecl
@@ -753,5 +754,6 @@ int
 
 main(int argc, char *argv[])
 {
-	return mainFn(argc, argv);
+	return jxrlibDecodeMain(argc, argv);
 }
+#endif

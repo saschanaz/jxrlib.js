@@ -23,7 +23,17 @@ var JxrLib;
             reader.readAsArrayBuffer(blob);
         });
     }
+    function uint8ArrayToBlob(uint8array, mimeType) {
+        return new Blob([new DataView(uint8array.buffer)], { type: mimeType });
+    }
+    function blobToElement(blob) {
+        var image = new Image();
+        image.src = URL.createObjectURL(blob, { oneTimeOnly: true });
+        return image;
+    }
     function decode(input, options) {
+        if (!Module || !("_jxrlibDecodeMain" in Module))
+            throw new Error("jxrlib was not detected. It should be included for JxrLib.decode function.");
         var sequence;
         if (input instanceof ArrayBuffer)
             sequence = Promise.resolve(input);
@@ -34,7 +44,7 @@ var JxrLib;
             return EmscriptenUtility.FileSystem.synchronize(true);
         }).then(function () {
             var arguments = EmscriptenUtility.allocateStringArray(["./this.program", "-v", "-i", "input.jxr", "-o", "output.bmp"]);
-            var resultCode = Module.ccall("mainFn", "number", ["number", "number"], [arguments.content.length, arguments.pointer]);
+            var resultCode = Module.ccall("jxrlibDecodeMain", "number", ["number", "number"], [arguments.content.length, arguments.pointer]);
             console.log(resultCode);
             if (resultCode !== 0)
                 throw new Error("Decoding failed: error code " + resultCode);
@@ -49,19 +59,48 @@ var JxrLib;
     }
     JxrLib.decode = decode;
     function decodeAsBlob(input, options) {
-        return decode(input, options).then(function (uint8array) {
-            return new Blob([new DataView(uint8array.buffer)], { type: "image/bmp" });
-        });
+        return decode(input, options).then(function (array) { return uint8ArrayToBlob(array, "image/bmp"); });
     }
     JxrLib.decodeAsBlob = decodeAsBlob;
     function decodeAsElement(input, options) {
-        return decodeAsBlob(input, options).then(function (blob) {
-            var image = new Image();
-            image.src = URL.createObjectURL(blob, { oneTimeOnly: true });
-            return image;
-        });
+        return decodeAsBlob(input, options).then(blobToElement);
     }
     JxrLib.decodeAsElement = decodeAsElement;
+    function encode(input, options) {
+        if (!Module || !("_jxrlibEncodeMain" in Module))
+            throw new Error("jxrlib was not detected. It should be included for JxrLib.decode function.");
+        var sequence;
+        if (input instanceof ArrayBuffer)
+            sequence = Promise.resolve(input);
+        else if (input instanceof Blob)
+            sequence = readBlob(input);
+        return sequence.then(function (buffer) {
+            FS.writeFile("input.bmp", new Uint8Array(buffer), { encoding: "binary" });
+            return EmscriptenUtility.FileSystem.synchronize(true);
+        }).then(function () {
+            var arguments = EmscriptenUtility.allocateStringArray(["./this.program", "-v", "-i", "input.bmp", "-o", "output.jxr"]);
+            var resultCode = Module.ccall("jxrlibEncodeMain", "number", ["number", "number"], [arguments.content.length, arguments.pointer]);
+            console.log(resultCode);
+            if (resultCode !== 0)
+                throw new Error("Encoding failed: error code " + resultCode);
+            EmscriptenUtility.deleteStringArray(arguments);
+            FS.unlink("input.bmp");
+            return EmscriptenUtility.FileSystem.synchronize(false);
+        }).then(function () {
+            var result = FS.readFile("output.jxr", { encoding: "binary" });
+            FS.unlink("output.jxr");
+            return result;
+        });
+    }
+    JxrLib.encode = encode;
+    function encodeAsBlob(input, options) {
+        return encode(input, options).then(function (array) { return uint8ArrayToBlob(array, "image/vnd.ms-photo"); });
+    }
+    JxrLib.encodeAsBlob = encodeAsBlob;
+    function encodeAsElement(input, options) {
+        return encodeAsBlob(input, options).then(blobToElement);
+    }
+    JxrLib.encodeAsElement = encodeAsElement;
 })(JxrLib || (JxrLib = {}));
 var EmscriptenUtility;
 (function (EmscriptenUtility) {

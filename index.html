@@ -6,15 +6,18 @@
   <meta name="viewport" content="width=device-width" />
   <title>jxrlib.js Testing Page</title>
   <link rel="stylesheet" href="app.css" type="text/css" />
+
+  <script src="jxrlib/JxrLib.out.js"></script>
+  <script src="jswrapper/jxrlibwrapper.js"></script>
   
-  <!--<script src="jxrlib/JxrDecLib.out.js"></script>
-  <script src="jswrapper/jxrlibwrapper.js"></script>-->
-  
-  <script src="jxrdeclib.js"></script>
+  <!--<script src="jxrdeclib.js"></script>-->
 
   <script>
     function decodeSelectedFile(file) {
       JxrLib.decodeAsBlob(file).then(show);
+    }
+    function encodeSelectedFile(file) {
+      JxrLib.encodeAsBlob(file).then(show);
     }
 
     function loadSample() {
@@ -38,14 +41,19 @@
 <body>
   <h1>jxrlib.js Testing Page</h1>
 
-  <div id="content">
+  <div id="decodeContent">
     <p>
       Load a JPEG XR file: <input type="file" onchange="decodeSelectedFile(this.files[0])" accept=".jxr,image/vnd.ms-photo" /><br />
     </p>
     <p>
-      <input name="sampleLoader" type="button" onclick="loadSample()" value="Load Lenna.jxr" /><br />
+      <input type="button" onclick="loadSample()" value="Load Lenna.jxr" /><br />
     </p>
-    <img id="image" />
   </div>
+  <div id="encodeContent">
+    <p>
+      Load a BMP file: <input type="file" onchange="encodeSelectedFile(this.files[0])" accept=".bmp,image/bmp" /><br />
+    </p>
+  </div>
+  <img id="image" />
 </body>
 </html>
