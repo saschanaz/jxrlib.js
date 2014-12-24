@@ -3,7 +3,12 @@
     export function isNativelySupported() {
         return new Promise<boolean>((resolve, reject) => {
             var image = new Image();
-            image.onload = () => resolve(true);
+            image.onload = () => {
+                if (image.naturalWidth == 2 && image.naturalHeight == 3)
+                    resolve(true);
+                else
+                    resolve(false);
+            };
             image.onerror = () => resolve(false);
             image.src = sample;
         });
