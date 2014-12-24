@@ -4,7 +4,12 @@ var JxrLib;
     function isNativelySupported() {
         return new Promise(function (resolve, reject) {
             var image = new Image();
-            image.onload = function () { return resolve(true); };
+            image.onload = function () {
+                if (image.naturalWidth == 2 && image.naturalHeight == 3)
+                    resolve(true);
+                else
+                    resolve(false);
+            };
             image.onerror = function () { return resolve(false); };
             image.src = sample;
         });
