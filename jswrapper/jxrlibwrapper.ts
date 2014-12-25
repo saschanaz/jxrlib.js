@@ -33,6 +33,14 @@
     }
 
     export interface DecodingOptionBag {
+        outputType?: string; // "bmp"|"tif"|"jxr
+        outputPixelFormat?: string; // ...
+        downscale: number; // uint;
+        region?: number[]; // [top, left, height, width]
+        orientation?: { rotate90: boolean; flipHorizontally: boolean; flipVertically: boolean; };
+        subbands?: string; // "all"|"noflexbits"|"nohighpass"|"dconly"
+        channel?: { image: boolean; alpha: boolean; };
+        postProcessingLevel: number; // 0 to 4
     }
     export function decode(blob: Blob, options?: DecodingOptionBag): Promise<Uint8Array>
     export function decode(arraybuffer: ArrayBuffer, options?: DecodingOptionBag): Promise<Uint8Array>
@@ -82,12 +90,33 @@
 
 
     export interface EncodingOptionBag {
+        inputType?: string; // "bmp"|"tif"|"hdr"
+
+        quality?: number; // 0 - 1
+        quantization?: number; // 1 to 255. Cannot choose both
+        sourcePixelFormat?: string; // ...
+        chromaYCoCg?: string; // "Yonly"|"420"|"422"|"444"
+        overlapLevel?: number; // 0 to 2
+
+        alphaFormat: string; // "planar"|"interleaved"
+        alphaQuantization?: number; // 1 to 255
+
+        forceSpatialOrderBitstream: boolean;
+        forceSequentialMode: boolean;
+        forceZeroAsWhite: boolean;
+
+        macroblockColumns: number[];
+        macroblockRows: number[];
+        tiles: number[]; // [vertical, horizontal]
+
+        flexbitsTrimming: number; // 0 to 15
+        subbands?: string; // "all"|"noflexbits"|"nohighpass"|"dconly"
     }
     export function encode(blob: Blob, options?: EncodingOptionBag): Promise<Uint8Array>
     export function encode(arraybuffer: ArrayBuffer, options?: EncodingOptionBag): Promise<Uint8Array>
     export function encode(input: any, options?: EncodingOptionBag) {
         if (!Module || !("_jxrlibEncodeMain" in Module))
-            throw new Error("jxrlib was not detected. It should be included for JxrLib.decode function.");
+            throw new Error("jxrlib was not detected. It should be included for JxrLib.encode function.");
 
         var sequence: Promise<ArrayBuffer>;
         if (input instanceof ArrayBuffer)

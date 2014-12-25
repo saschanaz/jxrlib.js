@@ -1,5 +1,5 @@
-# Merge JxrDecLib.out.js and jxrlibwrapper.js
+# Merge JxrLib.out.js and jxrlibwrapper.js
 
-$decout = gc jxrlib/JxrDecLib.out.js
+$libout = gc jxrlib/JxrLib.out.js
 $wrapper = gc jswrapper/jxrlibwrapper.js
-sc jxrdeclib.js $($decout + $wrapper[0..$($wrapper.length - 2)])
+sc jxrlib.js $($libout + $wrapper[0..$($wrapper.length - 2)])

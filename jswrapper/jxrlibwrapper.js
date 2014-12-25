@@ -68,7 +68,7 @@ var JxrLib;
     JxrLib.decodeAsElement = decodeAsElement;
     function encode(input, options) {
         if (!Module || !("_jxrlibEncodeMain" in Module))
-            throw new Error("jxrlib was not detected. It should be included for JxrLib.decode function.");
+            throw new Error("jxrlib was not detected. It should be included for JxrLib.encode function.");
         var sequence;
         if (input instanceof ArrayBuffer)
             sequence = Promise.resolve(input);
