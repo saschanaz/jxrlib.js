@@ -1,8 +1,39 @@
 declare module JxrLib {
     function isNativelySupported(): Promise<boolean>;
+    enum PixelFormats {
+        Bpp24BGR = 0,
+        Bpp1BlackWhite = 1,
+        Bpp8Gray = 2,
+        Bpp16Gray = 3,
+        Bpp16GrayFixedPoint = 4,
+        Bpp16GrayHalf = 5,
+        Bpp32GrayFixedPoint = 7,
+        Bpp32GrayFloat = 8,
+        Bpp24RGB = 9,
+        Bpp48RGB = 10,
+        Bpp48RGBFixedPoint = 11,
+        Bpp48RGBHalf = 12,
+        Bpp96RGBFixedPoint = 14,
+        Bpp128RGBFloat = 15,
+        Bpp32RGBE = 16,
+        Bpp32CMYK = 17,
+        Bpp64CMYK = 18,
+        Bpp32BGRA = 22,
+        Bpp64RGBA = 23,
+        Bpp64RGBAFixedPoint = 24,
+        Bpp64RGBAHalf = 25,
+        Bpp128RGBAFixedPoint = 27,
+        Bpp128RGBAFloat = 28,
+        Bpp16RGB555 = 29,
+        Bpp16RGB565 = 30,
+        Bpp32RGB101010 = 31,
+        Bpp40CMYKAlpha = 32,
+        Bpp80CMYKAlpha = 33,
+        Bpp32BGR = 34,
+    }
     interface DecodingOptionBag {
         outputType?: string;
-        outputPixelFormat?: string;
+        outputPixelFormat?: PixelFormats;
         downscale: number;
         region?: number[];
         orientation?: {
@@ -27,7 +58,7 @@ declare module JxrLib {
         inputType?: string;
         quality?: number;
         quantization?: number;
-        sourcePixelFormat?: string;
+        sourcePixelFormat?: PixelFormats;
         chromaYCoCg?: string;
         overlapLevel?: number;
         alphaFormat: string;

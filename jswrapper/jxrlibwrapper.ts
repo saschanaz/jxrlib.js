@@ -14,6 +14,42 @@
         });
     }
 
+    export enum PixelFormats {
+        Bpp24BGR,
+        Bpp1BlackWhite,
+        Bpp8Gray,
+        Bpp16Gray,
+        Bpp16GrayFixedPoint,
+        Bpp16GrayHalf,
+        
+        Bpp32GrayFixedPoint = 7,
+        Bpp32GrayFloat,
+        Bpp24RGB,
+        Bpp48RGB,
+        Bpp48RGBFixedPoint,
+        Bpp48RGBHalf,
+        
+        Bpp96RGBFixedPoint = 14,
+        Bpp128RGBFloat,
+        Bpp32RGBE,
+        Bpp32CMYK,
+        Bpp64CMYK,
+
+        Bpp32BGRA = 22,
+        Bpp64RGBA,
+        Bpp64RGBAFixedPoint,
+        Bpp64RGBAHalf,
+
+        Bpp128RGBAFixedPoint = 27,
+        Bpp128RGBAFloat,
+        Bpp16RGB555,
+        Bpp16RGB565,
+        Bpp32RGB101010,
+        Bpp40CMYKAlpha,
+        Bpp80CMYKAlpha,
+        Bpp32BGR,
+    }
+
 
     function readBlob(blob: Blob) {
         return new Promise<ArrayBuffer>((resolve, reject) => {
@@ -32,9 +68,35 @@
         return image;
     }
 
+    function getFileName(optionType: string, inputData?: any) {
+        var base = inputData ? "input." : "output.";
+        if (optionType != null)
+            return base + optionType;
+        else if (!inputData)
+            return base + "bmp";
+
+        if (inputData instanceof File)
+            return (<File>inputData).name;
+        else if (inputData instanceof Blob) {
+            switch ((<Blob>inputData).type) {
+                case "image/bmp": return base + "bmp";
+                case "image/tiff": return base + "tif";
+                case "image/x‑portable‑bitmap":
+                case "image/x‑portable‑graymap":
+                case "image/x‑portable‑pixmap":
+                case "image/x‑portable‑anymap":
+                    return base + "pnm";
+            }
+        }
+
+        console.error("JxrLib cannot infer the proper file type, so assuming the input as a BMP file.");
+        return base + "bmp";
+    }
+
     export interface DecodingOptionBag {
-        outputType?: string; // "bmp"|"tif"|"jxr
-        outputPixelFormat?: string; // ...
+        outputType?: string; // "bmp"|"tif"|"jxr"|...
+
+        outputPixelFormat?: PixelFormats;
         downscale: number; // uint;
         region?: number[]; // [top, left, height, width]
         orientation?: { rotate90: boolean; flipHorizontally: boolean; flipVertically: boolean; };
@@ -42,11 +104,50 @@
         channel?: { image: boolean; alpha: boolean; };
         postProcessingLevel: number; // 0 to 4
     }
+    function getDecoderArgumentArray(options: DecodingOptionBag) {
+        var args: string[] = [];
+        if (!options)
+            return args;
+
+        if (options.outputPixelFormat != null)
+            args.push("-c", options.outputPixelFormat.toString());
+        if (options.region != null) {
+            args.push("-r");
+            for (var i = 0; i < 4; i++)
+                args.push(options.region[i].toFixed(0));
+        }
+        if (options.downscale != null)
+            args.push("-T", options.downscale.toString());
+        if (options.orientation != null)
+            args.push("-O",
+                (~~options.orientation.rotate90 << 2
+                    | ~~options.orientation.flipVertically << 1
+                    | ~~options.orientation.flipHorizontally).toString());
+        if (options.subbands != null) {
+            args.push("-s");
+            switch (options.subbands) {
+                case "all": args.push("0"); break;
+                case "noflexbits": args.push("1"); break;
+                case "nohighpass": args.push("2"); break;
+                case "dconly": args.push("3"); break;
+                default:
+                    throw new Error("\"" + options.subbands + "\" is not supported for `options.subbands`.");
+            }
+        }
+        if (options.channel != null)
+            args.push("-a", (~~options.channel.image << 1 | ~~options.channel.alpha).toString());
+        if (options.postProcessingLevel != null)
+            args.push("-p", options.postProcessingLevel.toString());
+        return args;
+    }
+
     export function decode(blob: Blob, options?: DecodingOptionBag): Promise<Uint8Array>
     export function decode(arraybuffer: ArrayBuffer, options?: DecodingOptionBag): Promise<Uint8Array>
     export function decode(input: any, options?: DecodingOptionBag) {
         if (!Module || !("_jxrlibDecodeMain" in Module))
             throw new Error("jxrlib was not detected. It should be included for JxrLib.decode function.");
+
+        var outputName = getFileName(options ? options.outputType : null);
 
         var sequence: Promise<ArrayBuffer>;
         if (input instanceof ArrayBuffer)
@@ -60,7 +161,8 @@
                 return EmscriptenUtility.FileSystem.synchronize(true);
             })
             .then(() => {
-                var arguments = EmscriptenUtility.allocateStringArray(["./this.program", "-v", "-i", "input.jxr", "-o", "output.bmp"]);
+                var arguments = EmscriptenUtility.allocateStringArray(
+                    ["./this.program", "-v", "-t", "-i", "input.jxr", "-o", outputName].concat(getDecoderArgumentArray(options)));
                 var resultCode = Module.ccall("jxrlibDecodeMain", "number", ["number", "number"], [arguments.content.length, arguments.pointer]);
                 console.log(resultCode);
                 if (resultCode !== 0)
@@ -70,8 +172,8 @@
                 return EmscriptenUtility.FileSystem.synchronize(false);
             })
             .then(() => {
-                var result = FS.readFile("output.bmp", { encoding: "binary" });
-                FS.unlink("output.bmp");
+                var result = FS.readFile(outputName, { encoding: "binary" });
+                FS.unlink(outputName);
                 return result;
             });
     }
@@ -90,11 +192,11 @@
 
 
     export interface EncodingOptionBag {
-        inputType?: string; // "bmp"|"tif"|"hdr"
+        inputType?: string; // "bmp"|"tif"|"hdr"|...
 
         quality?: number; // 0 - 1
         quantization?: number; // 1 to 255. Cannot choose both
-        sourcePixelFormat?: string; // ...
+        sourcePixelFormat?: PixelFormats;
         chromaYCoCg?: string; // "Yonly"|"420"|"422"|"444"
         overlapLevel?: number; // 0 to 2
 
@@ -112,11 +214,21 @@
         flexbitsTrimming: number; // 0 to 15
         subbands?: string; // "all"|"noflexbits"|"nohighpass"|"dconly"
     }
+    function getEncoderArgumentString(options: EncodingOptionBag) {
+        var args: string[] = [];
+        if (!options)
+            return args;
+
+
+    }
+
     export function encode(blob: Blob, options?: EncodingOptionBag): Promise<Uint8Array>
     export function encode(arraybuffer: ArrayBuffer, options?: EncodingOptionBag): Promise<Uint8Array>
     export function encode(input: any, options?: EncodingOptionBag) {
         if (!Module || !("_jxrlibEncodeMain" in Module))
             throw new Error("jxrlib was not detected. It should be included for JxrLib.encode function.");
+
+        var inputName = getFileName(options ? options.inputType : null, input);
 
         var sequence: Promise<ArrayBuffer>;
         if (input instanceof ArrayBuffer)
@@ -126,17 +238,18 @@
 
         return sequence
             .then((buffer) => {
-                FS.writeFile("input.bmp", new Uint8Array(buffer), { encoding: "binary" });
+                FS.writeFile(inputName, new Uint8Array(buffer), { encoding: "binary" });
                 return EmscriptenUtility.FileSystem.synchronize(true);
             })
             .then(() => {
-                var arguments = EmscriptenUtility.allocateStringArray(["./this.program", "-v", "-i", "input.bmp", "-o", "output.jxr"]);
+                var arguments = EmscriptenUtility.allocateStringArray(
+                    ["./this.program", "-v", "-i", inputName, "-o", "output.jxr"].concat(getEncoderArgumentString(options)));
                 var resultCode = Module.ccall("jxrlibEncodeMain", "number", ["number", "number"], [arguments.content.length, arguments.pointer]);
                 console.log(resultCode);
                 if (resultCode !== 0)
                     throw new Error("Encoding failed: error code " + resultCode);
                 EmscriptenUtility.deleteStringArray(arguments);
-                FS.unlink("input.bmp");
+                FS.unlink(inputName);
                 return EmscriptenUtility.FileSystem.synchronize(false);
             })
             .then(() => {
