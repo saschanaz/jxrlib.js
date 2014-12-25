@@ -15,6 +15,38 @@ var JxrLib;
         });
     }
     JxrLib.isNativelySupported = isNativelySupported;
+    (function (PixelFormats) {
+        PixelFormats[PixelFormats["Bpp24BGR"] = 0] = "Bpp24BGR";
+        PixelFormats[PixelFormats["Bpp1BlackWhite"] = 1] = "Bpp1BlackWhite";
+        PixelFormats[PixelFormats["Bpp8Gray"] = 2] = "Bpp8Gray";
+        PixelFormats[PixelFormats["Bpp16Gray"] = 3] = "Bpp16Gray";
+        PixelFormats[PixelFormats["Bpp16GrayFixedPoint"] = 4] = "Bpp16GrayFixedPoint";
+        PixelFormats[PixelFormats["Bpp16GrayHalf"] = 5] = "Bpp16GrayHalf";
+        PixelFormats[PixelFormats["Bpp32GrayFixedPoint"] = 7] = "Bpp32GrayFixedPoint";
+        PixelFormats[PixelFormats["Bpp32GrayFloat"] = 8] = "Bpp32GrayFloat";
+        PixelFormats[PixelFormats["Bpp24RGB"] = 9] = "Bpp24RGB";
+        PixelFormats[PixelFormats["Bpp48RGB"] = 10] = "Bpp48RGB";
+        PixelFormats[PixelFormats["Bpp48RGBFixedPoint"] = 11] = "Bpp48RGBFixedPoint";
+        PixelFormats[PixelFormats["Bpp48RGBHalf"] = 12] = "Bpp48RGBHalf";
+        PixelFormats[PixelFormats["Bpp96RGBFixedPoint"] = 14] = "Bpp96RGBFixedPoint";
+        PixelFormats[PixelFormats["Bpp128RGBFloat"] = 15] = "Bpp128RGBFloat";
+        PixelFormats[PixelFormats["Bpp32RGBE"] = 16] = "Bpp32RGBE";
+        PixelFormats[PixelFormats["Bpp32CMYK"] = 17] = "Bpp32CMYK";
+        PixelFormats[PixelFormats["Bpp64CMYK"] = 18] = "Bpp64CMYK";
+        PixelFormats[PixelFormats["Bpp32BGRA"] = 22] = "Bpp32BGRA";
+        PixelFormats[PixelFormats["Bpp64RGBA"] = 23] = "Bpp64RGBA";
+        PixelFormats[PixelFormats["Bpp64RGBAFixedPoint"] = 24] = "Bpp64RGBAFixedPoint";
+        PixelFormats[PixelFormats["Bpp64RGBAHalf"] = 25] = "Bpp64RGBAHalf";
+        PixelFormats[PixelFormats["Bpp128RGBAFixedPoint"] = 27] = "Bpp128RGBAFixedPoint";
+        PixelFormats[PixelFormats["Bpp128RGBAFloat"] = 28] = "Bpp128RGBAFloat";
+        PixelFormats[PixelFormats["Bpp16RGB555"] = 29] = "Bpp16RGB555";
+        PixelFormats[PixelFormats["Bpp16RGB565"] = 30] = "Bpp16RGB565";
+        PixelFormats[PixelFormats["Bpp32RGB101010"] = 31] = "Bpp32RGB101010";
+        PixelFormats[PixelFormats["Bpp40CMYKAlpha"] = 32] = "Bpp40CMYKAlpha";
+        PixelFormats[PixelFormats["Bpp80CMYKAlpha"] = 33] = "Bpp80CMYKAlpha";
+        PixelFormats[PixelFormats["Bpp32BGR"] = 34] = "Bpp32BGR";
+    })(JxrLib.PixelFormats || (JxrLib.PixelFormats = {}));
+    var PixelFormats = JxrLib.PixelFormats;
     function readBlob(blob) {
         return new Promise(function (resolve, reject) {
             var reader = new FileReader();
@@ -31,9 +63,74 @@ var JxrLib;
         image.src = URL.createObjectURL(blob, { oneTimeOnly: true });
         return image;
     }
+    function getFileName(optionType, inputData) {
+        var base = inputData ? "input." : "output.";
+        if (optionType != null)
+            return base + optionType;
+        else if (!inputData)
+            return base + "bmp";
+        if (inputData instanceof File)
+            return inputData.name;
+        else if (inputData instanceof Blob) {
+            switch (inputData.type) {
+                case "image/bmp":
+                    return base + "bmp";
+                case "image/tiff":
+                    return base + "tif";
+                case "image/x‑portable‑bitmap":
+                case "image/x‑portable‑graymap":
+                case "image/x‑portable‑pixmap":
+                case "image/x‑portable‑anymap":
+                    return base + "pnm";
+            }
+        }
+        console.error("JxrLib cannot infer the proper file type, so assuming the input as a BMP file.");
+        return base + "bmp";
+    }
+    function getDecoderArgumentArray(options) {
+        var args = [];
+        if (!options)
+            return args;
+        if (options.outputPixelFormat != null)
+            args.push("-c", options.outputPixelFormat.toString());
+        if (options.region != null) {
+            args.push("-r");
+            for (var i = 0; i < 4; i++)
+                args.push(options.region[i].toFixed(0));
+        }
+        if (options.downscale != null)
+            args.push("-T", options.downscale.toString());
+        if (options.orientation != null)
+            args.push("-O", (~~options.orientation.rotate90 << 2 | ~~options.orientation.flipVertically << 1 | ~~options.orientation.flipHorizontally).toString());
+        if (options.subbands != null) {
+            args.push("-s");
+            switch (options.subbands) {
+                case "all":
+                    args.push("0");
+                    break;
+                case "noflexbits":
+                    args.push("1");
+                    break;
+                case "nohighpass":
+                    args.push("2");
+                    break;
+                case "dconly":
+                    args.push("3");
+                    break;
+                default:
+                    throw new Error("\"" + options.subbands + "\" is not supported for `options.subbands`.");
+            }
+        }
+        if (options.channel != null)
+            args.push("-a", (~~options.channel.image << 1 | ~~options.channel.alpha).toString());
+        if (options.postProcessingLevel != null)
+            args.push("-p", options.postProcessingLevel.toString());
+        return args;
+    }
     function decode(input, options) {
         if (!Module || !("_jxrlibDecodeMain" in Module))
             throw new Error("jxrlib was not detected. It should be included for JxrLib.decode function.");
+        var outputName = getFileName(options ? options.outputType : null);
         var sequence;
         if (input instanceof ArrayBuffer)
             sequence = Promise.resolve(input);
@@ -43,7 +140,7 @@ var JxrLib;
             FS.writeFile("input.jxr", new Uint8Array(buffer), { encoding: "binary" });
             return EmscriptenUtility.FileSystem.synchronize(true);
         }).then(function () {
-            var arguments = EmscriptenUtility.allocateStringArray(["./this.program", "-v", "-i", "input.jxr", "-o", "output.bmp"]);
+            var arguments = EmscriptenUtility.allocateStringArray(["./this.program", "-v", "-t", "-i", "input.jxr", "-o", outputName].concat(getDecoderArgumentArray(options)));
             var resultCode = Module.ccall("jxrlibDecodeMain", "number", ["number", "number"], [arguments.content.length, arguments.pointer]);
             console.log(resultCode);
             if (resultCode !== 0)
@@ -52,8 +149,8 @@ var JxrLib;
             FS.unlink("input.jxr");
             return EmscriptenUtility.FileSystem.synchronize(false);
         }).then(function () {
-            var result = FS.readFile("output.bmp", { encoding: "binary" });
-            FS.unlink("output.bmp");
+            var result = FS.readFile(outputName, { encoding: "binary" });
+            FS.unlink(outputName);
             return result;
         });
     }
@@ -66,25 +163,31 @@ var JxrLib;
         return decodeAsBlob(input, options).then(blobToElement);
     }
     JxrLib.decodeAsElement = decodeAsElement;
+    function getEncoderArgumentString(options) {
+        var args = [];
+        if (!options)
+            return args;
+    }
     function encode(input, options) {
         if (!Module || !("_jxrlibEncodeMain" in Module))
-            throw new Error("jxrlib was not detected. It should be included for JxrLib.decode function.");
+            throw new Error("jxrlib was not detected. It should be included for JxrLib.encode function.");
+        var inputName = getFileName(options ? options.inputType : null, input);
         var sequence;
         if (input instanceof ArrayBuffer)
             sequence = Promise.resolve(input);
         else if (input instanceof Blob)
             sequence = readBlob(input);
         return sequence.then(function (buffer) {
-            FS.writeFile("input.bmp", new Uint8Array(buffer), { encoding: "binary" });
+            FS.writeFile(inputName, new Uint8Array(buffer), { encoding: "binary" });
             return EmscriptenUtility.FileSystem.synchronize(true);
         }).then(function () {
-            var arguments = EmscriptenUtility.allocateStringArray(["./this.program", "-v", "-i", "input.bmp", "-o", "output.jxr"]);
+            var arguments = EmscriptenUtility.allocateStringArray(["./this.program", "-v", "-i", inputName, "-o", "output.jxr"].concat(getEncoderArgumentString(options)));
             var resultCode = Module.ccall("jxrlibEncodeMain", "number", ["number", "number"], [arguments.content.length, arguments.pointer]);
             console.log(resultCode);
             if (resultCode !== 0)
                 throw new Error("Encoding failed: error code " + resultCode);
             EmscriptenUtility.deleteStringArray(arguments);
-            FS.unlink("input.bmp");
+            FS.unlink(inputName);
             return EmscriptenUtility.FileSystem.synchronize(false);
         }).then(function () {
             var result = FS.readFile("output.jxr", { encoding: "binary" });
