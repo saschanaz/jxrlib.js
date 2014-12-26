@@ -34,19 +34,24 @@ declare module JxrLib {
     interface DecodingOptionBag {
         outputType?: string;
         outputPixelFormat?: PixelFormats;
-        downscale: number;
         region?: number[];
+        downscale: number;
         orientation?: {
-            rotate90: boolean;
-            flipHorizontally: boolean;
             flipVertically: boolean;
+            flipHorizontally: boolean;
+            rotate90: boolean;
         };
         subbands?: string;
         channel?: {
-            image: boolean;
             alpha: boolean;
+            image: boolean;
         };
         postProcessingLevel: number;
+    }
+    interface ImageOrienting {
+        flipVertically: boolean;
+        flipHorizontally: boolean;
+        rotate90: boolean;
     }
     function decode(blob: Blob, options?: DecodingOptionBag): Promise<Uint8Array>;
     function decode(arraybuffer: ArrayBuffer, options?: DecodingOptionBag): Promise<Uint8Array>;
@@ -56,9 +61,10 @@ declare module JxrLib {
     function decodeAsElement(arraybuffer: ArrayBuffer, options?: DecodingOptionBag): Promise<HTMLImageElement>;
     interface EncodingOptionBag {
         inputType?: string;
+        sourcePixelFormat?: PixelFormats;
         quality?: number;
         quantization?: number;
-        sourcePixelFormat?: PixelFormats;
+        orientation?: ImageOrienting;
         chromaYCoCg?: string;
         overlapLevel?: number;
         alphaFormat: string;

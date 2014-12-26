@@ -92,17 +92,41 @@
         console.error("JxrLib cannot infer the proper file type, so assuming the input as a BMP file.");
         return base + "bmp";
     }
+    function stringOption(optionName: string, stringOptions: string[], input: string) {
+        var option = stringOptions.indexOf(input);
+        if (option < 0)
+            throw new Error("\"" + input + "\" is not supported for `options." + optionName + "`.");
+        return option;
+    }
+    function booleanOption(booleans: boolean[]) {
+        var bits = 0;
+        for (var i = 0; i < booleans.length; i++)
+            bits += ~~booleans[i] << i;
+        return bits;
+    }
 
     export interface DecodingOptionBag {
         outputType?: string; // "bmp"|"tif"|"jxr"|...
 
         outputPixelFormat?: PixelFormats;
-        downscale: number; // uint;
         region?: number[]; // [top, left, height, width]
-        orientation?: { rotate90: boolean; flipHorizontally: boolean; flipVertically: boolean; };
+        downscale: number; // uint;
+        orientation?: { flipVertically: boolean; flipHorizontally: boolean; rotate90: boolean; };
         subbands?: string; // "all"|"noflexbits"|"nohighpass"|"dconly"
-        channel?: { image: boolean; alpha: boolean; };
+        channel?: { alpha: boolean; image: boolean; };
         postProcessingLevel: number; // 0 to 4
+    }
+    export interface ImageOrienting {
+        flipVertically: boolean;
+        flipHorizontally: boolean;
+        rotate90: boolean;
+    }
+    function orientAsBits(orientation: ImageOrienting) {
+        return booleanOption([
+            orientation.flipVertically,
+            orientation.flipHorizontally,
+            orientation.rotate90
+        ]);
     }
     function getDecoderArgumentArray(options: DecodingOptionBag) {
         var args: string[] = [];
@@ -114,28 +138,16 @@
         if (options.region != null) {
             args.push("-r");
             for (var i = 0; i < 4; i++)
-                args.push(options.region[i].toFixed(0));
+                args.push(options.region[i].toString());
         }
         if (options.downscale != null)
             args.push("-T", options.downscale.toString());
         if (options.orientation != null)
-            args.push("-O",
-                (~~options.orientation.rotate90 << 2
-                    | ~~options.orientation.flipVertically << 1
-                    | ~~options.orientation.flipHorizontally).toString());
-        if (options.subbands != null) {
-            args.push("-s");
-            switch (options.subbands) {
-                case "all": args.push("0"); break;
-                case "noflexbits": args.push("1"); break;
-                case "nohighpass": args.push("2"); break;
-                case "dconly": args.push("3"); break;
-                default:
-                    throw new Error("\"" + options.subbands + "\" is not supported for `options.subbands`.");
-            }
-        }
+            args.push("-O", orientAsBits(options.orientation).toString());
+        if (options.subbands != null)
+            args.push("-s", stringOption("subbands", ["all", "noflexbits", "nohighpass", "dconly"], options.subbands).toString());
         if (options.channel != null)
-            args.push("-a", (~~options.channel.image << 1 | ~~options.channel.alpha).toString());
+            args.push("-a", booleanOption([options.channel.alpha, options.channel.image]).toString());
         if (options.postProcessingLevel != null)
             args.push("-p", options.postProcessingLevel.toString());
         return args;
@@ -193,10 +205,11 @@
 
     export interface EncodingOptionBag {
         inputType?: string; // "bmp"|"tif"|"hdr"|...
+        sourcePixelFormat?: PixelFormats;
 
         quality?: number; // 0 - 1
         quantization?: number; // 1 to 255. Cannot choose both
-        sourcePixelFormat?: PixelFormats;
+        orientation?: ImageOrienting;
         chromaYCoCg?: string; // "Yonly"|"420"|"422"|"444"
         overlapLevel?: number; // 0 to 2
 
@@ -218,8 +231,51 @@
         var args: string[] = [];
         if (!options)
             return args;
+        if (options.quality != null && options.quantization != null)
+            throw new Error("You must choose options.quality or options.quantization, not both.");
 
-
+        if (options.sourcePixelFormat != null)
+            args.push("-c", options.sourcePixelFormat.toString());
+        if (options.quality != null && options.quality <= 1)
+            args.push("-q", options.quality.toString());
+        else if (options.quantization != null && options.quantization >= 1)
+            args.push("-q", options.quantization.toString());
+        if (options.orientation != null)
+            args.push("-O", orientAsBits(options.orientation).toString());
+        if (options.chromaYCoCg != null)
+            args.push("-d", stringOption("chromaYCoCg", ["Yonly", "420", "422", "444"], options.chromaYCoCg).toString());
+        if (options.overlapLevel != null)
+            args.push("-l", options.overlapLevel.toString());
+        if (options.alphaFormat != null)
+            args.push("-a", stringOption("alphaFormat", [,,"planar", "interleaved"], options.alphaFormat).toString());
+        if (options.alphaQuantization != null)
+            args.push("-Q", options.alphaQuantization.toString());
+        if (options.forceSpatialOrderBitstream != null)
+            args.push("-f");
+        if (options.forceSequentialMode != null)
+            args.push("-p");
+        if (options.forceZeroAsWhite != null)
+            args.push("-b");
+        if (options.macroblockColumns != null) {
+            args.push("-V");
+            for (var i = 0; i < options.macroblockColumns.length; i++)
+                args.push(options.macroblockColumns[i].toString());
+        }
+        if (options.macroblockRows != null) {
+            args.push("-H");
+            for (var i = 0; i < options.macroblockRows.length; i++)
+                args.push(options.macroblockRows[i].toString());
+        }
+        if (options.tiles != null) {
+            args.push("-U");
+            for (var i = 0; i < 2; i++)
+                args.push(options.tiles[i].toString());
+        }
+        if (options.flexbitsTrimming != null)
+            args.push("-F", options.flexbitsTrimming.toString());
+        if (options.subbands != null)
+            args.push("-s", stringOption("subbands", ["all", "noflexbits", "nohighpass", "dconly"], options.subbands).toString());
+        return args;
     }
 
     export function encode(blob: Blob, options?: EncodingOptionBag): Promise<Uint8Array>

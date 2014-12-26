@@ -3,6 +3,8 @@ jxrlib.js
 
 A trial to bring [jxrlib](http://jxrlib.codeplex.com/), an open source JPEG XR library, to the JavaScript world.
 
+You can try it [here](http://saschanaz.github.io/jxrlib.js).
+
 ### Example
 
 ```javascript

@@ -17,7 +17,22 @@
       JxrLib.decodeAsBlob(file).then(show);
     }
     function encodeSelectedFile(file) {
-      JxrLib.encodeAsBlob(file).then(show);
+      var blob;
+      JxrLib.encodeAsBlob(file)
+        .then(function (_blob) {
+          blob = _blob;
+          return JxrLib.isNativelySupported();
+        })
+        .then(function (isNative) {
+          if (isNative) {
+            message.textContent = "Successfully encoded.";
+            return show(blob);
+          }
+          else {
+            message.textContent = "Encoded and decoded again by JxrLib.";
+            return decodeSelectedFile(blob);
+          }
+        });
     }
 
     function loadSample() {
@@ -54,6 +69,7 @@
       Load a BMP file: <input type="file" onchange="encodeSelectedFile(this.files[0])" accept=".bmp,image/bmp" /><br />
     </p>
   </div>
+  <div id="message"></div>
   <img id="image" />
 </body>
 </html>
