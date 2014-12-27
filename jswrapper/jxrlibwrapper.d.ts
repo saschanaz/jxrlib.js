@@ -31,6 +31,11 @@ declare module JxrLib {
         Bpp80CMYKAlpha = 33,
         Bpp32BGR = 34,
     }
+    interface ImageOrienting {
+        flipVertically: boolean;
+        flipHorizontally: boolean;
+        rotate90: boolean;
+    }
     interface DecodingOptionBag {
         outputType?: string;
         outputPixelFormat?: PixelFormats;
@@ -47,11 +52,6 @@ declare module JxrLib {
             image: boolean;
         };
         postProcessingLevel: number;
-    }
-    interface ImageOrienting {
-        flipVertically: boolean;
-        flipHorizontally: boolean;
-        rotate90: boolean;
     }
     function decode(blob: Blob, options?: DecodingOptionBag): Promise<Uint8Array>;
     function decode(arraybuffer: ArrayBuffer, options?: DecodingOptionBag): Promise<Uint8Array>;

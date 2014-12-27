@@ -50,6 +50,19 @@
         Bpp32BGR,
     }
 
+    export interface ImageOrienting {
+        flipVertically: boolean;
+        flipHorizontally: boolean;
+        rotate90: boolean;
+    }
+    function orientAsBits(orientation: ImageOrienting) {
+        return booleanOption([
+            orientation.flipVertically,
+            orientation.flipHorizontally,
+            orientation.rotate90
+        ]);
+    }
+
 
     function readBlob(blob: Blob) {
         return new Promise<ArrayBuffer>((resolve, reject) => {
@@ -115,18 +128,6 @@
         subbands?: string; // "all"|"noflexbits"|"nohighpass"|"dconly"
         channel?: { alpha: boolean; image: boolean; };
         postProcessingLevel: number; // 0 to 4
-    }
-    export interface ImageOrienting {
-        flipVertically: boolean;
-        flipHorizontally: boolean;
-        rotate90: boolean;
-    }
-    function orientAsBits(orientation: ImageOrienting) {
-        return booleanOption([
-            orientation.flipVertically,
-            orientation.flipHorizontally,
-            orientation.rotate90
-        ]);
     }
     function getDecoderArgumentArray(options: DecodingOptionBag) {
         var args: string[] = [];
