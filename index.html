@@ -47,7 +47,7 @@
 
       JxrLib.encodeAsBlob(file)
         .catch(function () {
-          stackMessage("JxrLib cannot open this file. Getting help from the browser...");
+          stackMessage("JxrLib cannot open this file. Fallbacking to the browser native... Try BMP file if this fails.");
           return tryDrawing(file)
             .then(function (url) {
               if (url)
