@@ -47,6 +47,13 @@ var JxrLib;
         PixelFormats[PixelFormats["Bpp32BGR"] = 34] = "Bpp32BGR";
     })(JxrLib.PixelFormats || (JxrLib.PixelFormats = {}));
     var PixelFormats = JxrLib.PixelFormats;
+    function orientAsBits(orientation) {
+        return booleanOption([
+            orientation.flipVertically,
+            orientation.flipHorizontally,
+            orientation.rotate90
+        ]);
+    }
     function readBlob(blob) {
         return new Promise(function (resolve, reject) {
             var reader = new FileReader();
@@ -98,13 +105,6 @@ var JxrLib;
         for (var i = 0; i < booleans.length; i++)
             bits += ~~booleans[i] << i;
         return bits;
-    }
-    function orientAsBits(orientation) {
-        return booleanOption([
-            orientation.flipVertically,
-            orientation.flipHorizontally,
-            orientation.rotate90
-        ]);
     }
     function getDecoderArgumentArray(options) {
         var args = [];
