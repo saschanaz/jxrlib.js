@@ -13,26 +13,64 @@
   <!--<script src="jxrlib.js"></script>-->
 
   <script>
+    var decoderCanvas;
+    var decoderContext;
+
+    window.addEventListener("DOMContentLoaded", function () {
+      decoderCanvas = document.createElement("canvas");
+      decoderContext = decoderCanvas.getContext("2d");
+    });
+    function tryDrawing(file) {
+      return new Promise(function (resolve, reject) {
+        var image = new Image();
+        image.onload = function () {
+          decoderCanvas.width = image.width;
+          decoderCanvas.height = image.height;
+          decoderContext.drawImage(image, 0, 0);
+          resolve(decoderCanvas.toDataURL("image/bmp"));
+        }
+        image.onerror = function () { resolve(null); }
+        image.src = URL.createObjectURL(file, { oneTimeOnly: true });
+      });
+    }
+
+
     function decodeSelectedFile(file) {
-      JxrLib.decodeAsBlob(file).then(show);
+      stackMessage("Decoding...");
+      JxrLib.decodeAsBlob(file).then(show)
+        .then(function () { stackMessage("Successfully decoded."); })
+        .catch(function () { stackMessage("Decoding failed."); });
     }
     function encodeSelectedFile(file) {
+      stackMessage("Encoding...");
       var blob;
+
       JxrLib.encodeAsBlob(file)
+        .catch(function () {
+          stackMessage("JxrLib cannot open this file. Getting help from the browser...");
+          return tryDrawing(file)
+            .then(function (url) {
+              if (url)
+                return download(url).then(function (array) { return JxrLib.encodeAsBlob(array, { inputType: "bmp" }); });
+              else
+                throw new Error();
+            });
+        })
         .then(function (_blob) {
           blob = _blob;
           return JxrLib.isNativelySupported();
         })
         .then(function (isNative) {
           if (isNative) {
-            message.textContent = "Successfully encoded.";
+            stackMessage("Successfully encoded.");
             return show(blob);
           }
           else {
-            message.textContent = "Encoded and decoded again by JxrLib.";
+            stackMessage("Successfully encoded and now decoding again by JxrLib....");
             return decodeSelectedFile(blob);
           }
-        });
+        })
+        .catch(function () { stackMessage("Encoding failed."); });
     }
 
     function loadSample() {
@@ -51,6 +89,14 @@
     function show(blob) {
       window.image.src = window.URL.createObjectURL(blob, { oneTimeOnly: true });
     }
+    function clearMessage() {
+      message.textContent = "";
+    }
+    function stackMessage(message) {
+      if (window.message.textContent.length > 0)
+        window.message.textContent += " ";
+      window.message.textContent += message;
+    }
   </script>
 </head>
 <body>
@@ -58,7 +104,7 @@
 
   <div id="decodeContent">
     <p>
-      Load a JPEG XR file: <input type="file" onchange="decodeSelectedFile(this.files[0])" accept=".jxr,image/vnd.ms-photo" /><br />
+      Load a JPEG XR file to decode: <input type="file" onchange="clearMessage(); decodeSelectedFile(this.files[0])" accept=".jxr,image/vnd.ms-photo" /><br />
     </p>
     <p>
       <input type="button" onclick="loadSample()" value="Load Lenna.jxr" /><br />
@@ -66,7 +112,7 @@
   </div>
   <div id="encodeContent">
     <p>
-      Load a BMP file: <input type="file" onchange="encodeSelectedFile(this.files[0])" accept=".bmp,image/bmp" /><br />
+      Load an image file to encode: <input type="file" onchange="clearMessage(); encodeSelectedFile(this.files[0])" accept="image/*" /><br />
     </p>
   </div>
   <div id="message"></div>
